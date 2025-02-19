@@ -1,14 +1,44 @@
-# Cybersecurity-Homelab-and-
+# Integrated Network Infrastructure with Windows AD and Linux
 
-# Cybersecurity Homelab
+This setup demonstrates a flexible and well-rounded network infrastructure that brings together Windows Server technologies, Linux systems, email services, and security monitoring.
+
+## [Key Components Include:](pplx://action/followup)
+
+- **[Windows Server with Active Directory (AD)](pplx://action/followup):** Centralized authentication and directory services  
+- **[DNS and DHCP](pplx://action/followup):** Integrated for name resolution and IP address management  
+- **[Client Connectivity](pplx://action/followup):** Windows 11 and Linux systems connected to the AD domain  
+- **[Postfix Email Integration](pplx://action/followup):** Configured between Linux and an Ubuntu mail server for efficient email routing  
+- **[Wazuh Security Monitoring](pplx://action/followup):** Collects and analyzes logs from both Windows and Linux agents, enhancing security visibility  
+
+
 
 ## Overview
+
+| VM Name | Operating System | Specs | Storage (minimum) | IP Address | Function |
+|---------|------------------|-------|-------------------|------------|----------|
+| [project-x-dc] | Windows Server 2025 | 2 CPU / 4096 MB | 50 GBs | 10.0.0.5 | Domain Controller (DNS, DHCP, SSO) |
+| [project-x-win-client] | Windows 11 Enterprise | 2 CPU / 4096 MB | 80 GBs | 10.0.0.100 or (dynamic) | Windows Workstation |
+| [project-x-linux-client] | Ubuntu 22.04 Desktop | 1 CPU / 2048 MB | 80 GBs | 10.0.0.101 or (dynamic) | Linux Desktop Workstation |
+| [project-x-sec-box] | Ubuntu 22.04 Desktop | 2 CPU / 4096 MB | 80 GBs | 10.0.0.10 | Dedicated Security Server |
+| [project-x-email-svr] | Ubuntu Server 22.04 | 1 CPU / 2048 MB | 25 GBs | 10.0.0.8 | SMTP Relay Server |
+
+
+
 
 ## Network Topology
 ![image](https://github.com/user-attachments/assets/063666f2-dcaf-4e7d-aec3-8396a018ac47)
 
+## [Tools](pplx://action/followup)
 
- # <a href="https://github.com/Hashi-MU/VirtualBox-Installation-and-VM-Setup/blob/main/README.md">VirtualBox Installation and VM Setup</a>
+- **[Microsoft Active Directory](pplx://action/followup)**: A directory service used for managing and organizing network resources, users, and permissions in a Windows environment.
+
+- **[Wazuh](pplx://action/followup)**: An open-source security monitoring platform that provides intrusion detection, log analysis, vulnerability detection, and compliance reporting.
+
+- **[Postfix](pplx://action/followup)**: A popular open-source mail transfer agent (MTA) used for sending and receiving email on Unix-like operating systems.
+
+
+
+ # VirtualBox Installation and VM Setup
 
 
 ## Installing VirtualBox
@@ -70,7 +100,7 @@
 
 ---
 
-#### [Step 2: Configure Administrator Account](pplx://action/followup)
+#### [Configure Administrator Account](pplx://action/followup)
 1. Set a password for the default Administrator account: 
 2. The login screen will appear.
 3. Navigate to the top of VirtualBox: **Input** → **Keyboard** → **Insert Ctrl-Alt-Del** to open the login prompt.
@@ -91,6 +121,9 @@
    - Look for **Interactive logon…**
 3. Toggle from Disabled to Enabled → Select **Apply** → **OK**.
 
+![image](https://github.com/user-attachments/assets/c9bc2931-95cd-4e1e-bb54-188c2b7ad42a)
+
+
 ---
 
 ### [Assign Static IP Address](pplx://action/followup)
@@ -104,6 +137,9 @@
    - Subnet mask: `255.255.255.0`
    - Default gateway: `10.0.0.1`
 7. Click **OK**.
+
+
+![image](https://github.com/user-attachments/assets/76c46aa0-110c-4a41-871a-510d418250db)
 
 ---
 
@@ -126,6 +162,7 @@
 9. Skip "Create DNS delegation" box → Click Next through all defaults until reaching the check screen.
 10. Allow checks to complete, then click Install and let the server restart.
 
+
 ---
 
 ### [Verify Domain Controller Setup](pplx://action/followup)
@@ -133,6 +170,10 @@
 2. Open PowerShell and type:
 Get-ADDomainController
 
+
+![image](https://github.com/user-attachments/assets/b8c86489-0d6c-4bf2-b128-16338cc4dd65)
+
+![image](https://github.com/user-attachments/assets/f3ce2b83-042e-4b66-987e-fb261022bd6d)
 
 ---
 
@@ -143,11 +184,20 @@ Get-ADDomainController
 4. Add `8.8.8.8` (Google's public DNS) → Click OK.
 5. Open PowerShell and test with:
 
+
+
 ping google.com
 
 
 nslookup corp.project-x-dc.com
 
+![image](https://github.com/user-attachments/assets/678c8a52-07e7-413c-a040-02cb3b31a2e0)
+
+![image](https://github.com/user-attachments/assets/cdb4507f-11ed-4cb6-b218-be43525be30b)
+
+
+
+![image](https://github.com/user-attachments/assets/ff9afbdf-5ef6-419d-b395-831c2c3fcf5b)
 
 ---
 
@@ -161,6 +211,9 @@ nslookup corp.project-x-dc.com
 3. Use defaults for exclusions, lease expiration, etc., and set Router IP as `10.0.0.1`.
 4. Complete all dialog boxes until finished.
 
+
+![image](https://github.com/user-attachments/assets/34336187-e2a1-4a9a-af9b-0b23fa497395)
+
 ---
 
 ### [Add User Accounts in Active Directory](pplx://action/followup)
@@ -169,7 +222,10 @@ nslookup corp.project-x-dc.com
 3. Enter user information as needed:
 4. Check "User cannot change password" option, then proceed with defaults.
 
+![image](https://github.com/user-attachments/assets/1627103f-9469-4b7e-bb85-a0dee6f6cc3f)
+
+
 ---
 
-### [Success!](pplx://action/followup)
-You have now completed installing, configuring, and customizing your Windows Server 2025 environment with Active Directory, DNS, DHCP, and user accounts!
+
+
