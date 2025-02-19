@@ -228,4 +228,578 @@ nslookup corp.project-x-dc.com
 ---
 
 
+# Windows 11 Enterprise Setup and Domain Connection 
+
+## [Setup Windows 11 Enterprise](pplx://action/followup)
+
+### [Disk Partitioning](pplx://action/followup)
+1. Select **Next** → **Install Windows 11** → Check the box → **Next**  
+2. Select **Disk 0 Unallocated Space** → **Create Partition**  
+   - Use default "Size in MB" setting → **Apply**  
+   - Wait for three partitions to appear  
+3. Select **Disk 0 Partition 3** (largest free space) → **Install**  
+4. Wait for installation to complete (VM will restart automatically)
+
+### [Bypass Microsoft Account](pplx://action/followup)
+1. Change network setting to **Host-only Adapter** (disables internet)  
+2. Open Command Prompt with **Shift + F10**  
+
+       oobe\bypassnro
+
+
+3. Restart VM and select **I don't have Internet** during setup  
+
+### [Local Account Configuration](pplx://action/followup)
+1. Set temporary account name (will change after domain join)  
+2. Create password:  
+- Enter password twice  
+- Set 3 security questions  
+3. Disable **all Privacy Settings** toggles  
+4. Complete setup to reach login screen  
+
+### [Network Restoration](pplx://action/followup)
+1. Change network back to **NAT Network** → **project-x-network**  
+
+![image](https://github.com/user-attachments/assets/b1db876e-c84a-4fd9-8304-35bea3100609)
+
+
+---
+
+## [Connect Windows 11 Enterprise to Domain Controller  ](pplx://action/followup)
+**[Prerequisite](pplx://action/followup):** Ensure Windows Server 2025 (`project-x-dc`) is running  
+
+### [Network Configuration](pplx://action/followup)
+1. Open **Control Panel** (Windows+X) → **Network and Sharing Center**  
+2. Right-click **Ethernet** → **Properties** → **IPv4 Properties**  
+- Static IP Configuration:  
+  ```
+  IP address: 10.0.0.100  
+  Subnet mask: 255.255.255.0  
+  Default gateway: 10.0.0.1  
+  Preferred DNS: 10.0.0.5  
+  ```
+
+![image](https://github.com/user-attachments/assets/44fe6110-b244-4dcb-8b6c-9ec733b293a1)
+
+
+### [Domain Join Process](pplx://action/followup)
+1. Search **"Change workgroup name"** → **Change**  
+2. Enter domain credentials:  
+
+
+
+![image](https://github.com/user-attachments/assets/31c16bda-c9cc-449c-aae2-fb29d362566b)
+
+![image](https://github.com/user-attachments/assets/9d7a9986-31ff-4d33-b30d-50ad0fb71d87)
+
+3. Restart VM when prompted  
+
+### [Domain Login](pplx://action/followup)
+1. At login screen: Select **Other User**  
+2. Enter credentials:  
+
+![image](https://github.com/user-attachments/assets/a7a44493-8939-4626-a2eb-e049ef7054ae)
+
+
+
+ 
+# Ubuntu Setup and Active Directory Integration 
+
+## [Install Ubuntu](pplx://action/followup)
+1. Boot Ubuntu ISO and select **Install Ubuntu**
+2. Configure settings:
+   - Keyboard layout: Default
+   - Installation type: **Erase Disk and Install Ubuntu**
+   - Region: Select your location
+3. Complete installation:
+   - Enter credentials
+   - Remove installation medium after restart
+   - Disable **Location Services** in post-install wizard
+
+![image](https://github.com/user-attachments/assets/f9a80361-f7ac-4834-bca4-4823959a678c)
+
+
+![image](https://github.com/user-attachments/assets/0a487ab9-5e1c-451f-99b5-b29605c4b635)
+
+
+![image](https://github.com/user-attachments/assets/0e2caa3e-3d1f-4c52-b38f-8791efaa8e72)
+
+## [Network Configuration](pplx://action/followup)
+1. Navigate to **Settings** → **Network**
+2. Create "Linux AD" wired connection:
+
+IPv4 Settings:
+
+    Address: 10.0.0.101
+
+    Netmask: 255.255.255.0
+
+    Gateway: 10.0.0.1
+
+    DNS: 10.0.0.5
+
+![image](https://github.com/user-attachments/assets/f78a0871-031f-455e-947e-59ce935cc560)
+
+
+## [Connect to Active Directory via Samba Winbind](pplx://action/followup)
+
+### [Prerequisites](pplx://action/followup)
+
+sudo apt update
+
+sudo apt -y install winbind libpam-winbind libnss-winbind krb5-config samba-dsdb-modules samba-vfs-modules
+
+![image](https://github.com/user-attachments/assets/e8387e95-4bdc-460b-8af9-0d36cfa070d0)
+
+![image](https://github.com/user-attachments/assets/74daaff1-23d4-4402-bba4-1fbb7f9bf0a6)
+
+![image](https://github.com/user-attachments/assets/7b9dd4fc-091a-4eca-be77-879d3309e922)
+
+### [Configure Samba](pplx://action/followup)
+1. Move the smb.conf.org file:
+
+sudo mv /etc/samba/smb.conf /etc/samba/smb.conf.org
+
+
+2. Edit new config:
+
+sudo nano /etc/samba/smb.conf
+
+
+Replace realm and workgroup with the following:
+
+[global]
+
+kerberos method = secrets and keytab
+
+realm = CORP.PROJECT-X-DC.COM
+
+workgroup = CORP
+
+security = ads
+
+template shell = /bin/bash
+
+winbind enum groups = Yes
+
+winbind enum users = Yes
+
+winbind separator = +
+
+idmap config * : rangesize = 1000000
+
+idmap config * : range = 1000000-19999999
+
+idmap config * : backend = autorid
+
+
+
+
+### [System Configuration](pplx://action/followup)
+1. Update name service switch:
+
+sudo nano /etc/nsswitch.conf
+
+
+Ensure contains:
+
+passwd: files systemd winbind
+group: files systemd winbind
+
+![image](https://github.com/user-attachments/assets/b7c1d4a1-2704-491c-b56b-cf800ef16232)
+
+2. Enable home directory creation:
+
+sudo pam-auth-update
+
+Scroll down up to the point where it states:” Create home directory on login“. Use the space
+bar to select, tab to “OK” and hit enter.
+
+![image](https://github.com/user-attachments/assets/82f96941-8d6f-4e6a-b255-01748ebf6600)
+
+### [Change DNS settings to refer to AD](pplx://action/followup)
+
+sudo nano /etc/resolv.conf
+
+![image](https://github.com/user-attachments/assets/7e87dc8b-10a5-4585-9454-2dcfd80842ea)
+
+### [Domain Join](pplx://action/followup)
+Join the domain with Administrator
+
+    sudo net ads join -U Administrator
+
+Restart Winbind
+    
+    sudo systemctl restart winbind
+
+
+## [Verify Configuration](pplx://action/followup)
+Get Active Directory services information listing
+
+    net ads info
+
+List all available users
+
+    wbinfo -u # List AD users
+
+
+![image](https://github.com/user-attachments/assets/07a7f1f8-9ffa-48d2-af62-708510691fb1)
+
+
+
+## [Create AD User (Windows Side)](pplx://action/followup)
+1. On Domain Controller:
+   - Open **Active Directory Users and Computers**
+   - Create user `janed@corp.project-x-dc.com` 
+
+![image](https://github.com/user-attachments/assets/ffe9fa22-e94a-46cc-bfe6-0b55caa4f7bd)
+
+## [Final Checks](pplx://action/followup)
+Clear the winbind cache by restarting the service, then see the changes reflected.
+
+    sudo systemctl restart winbind
+    wbinfo -u 
+    sudo login 
+
+Going back to the Server Manager, we should see “LINUX-CLIENT” under the “Computers”
+folder.
+
+![image](https://github.com/user-attachments/assets/25063361-df95-43cb-a71f-c25c8afd0e32)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Ubuntu Security Server Setup and Active Directory Integration
+
+## 1. Install Ubuntu Server
+1. Boot ISO and select **Ubuntu Server**
+2. Configure:
+   - Network: Default settings 
+   - Storage: **Use entire disk** 
+   - Hostname: `email-svr` 
+   - Username: `email-svt`
+   
+3. Skip Ubuntu Pro → Enable **OpenSSH Server**
+4. Complete installation and reboot
+
+
+
+## 2. Install Samba Winbind Packages
+
+    sudo apt update
+
+    sudo apt -y install winbind libpam-winbind libnss-winbind
+    krb5-config krb5-user samba-dsdb-modules samba-vfs-modules
+
+
+**Kerberos Prompts:**
+ 
+ Add CORP.PROJECT-X-DC.COM for the two Kerberos Authentication pages.
+
+
+## 3. Configure Samba
+Move the smb.conf.org file:
+
+    sudo mv /etc/samba/smb.conf /etc/samba/smb.conf.org
+    sudo nano /etc/samba/smb.conf
+
+Replace realm and workgroup with the following:
+
+[global]
+kerberos method = secrets and keytab
+realm = CORP.PROJECT-X-DC.COM
+workgroup = CORP
+security = ads
+template shell = /bin/bash
+winbind enum groups = Yes
+winbind enum users = Yes
+winbind separator = +
+idmap config * : rangesize = 1000000
+idmap config * : range = 1000000-19999999
+idmap config * : backend = autorid
+
+
+
+## 4. System Configuration
+Confirm passwd and group have winbind set as a value. 
+
+    sudo nano /etc/nsswitch.conf 
+
+
+![image](https://github.com/user-attachments/assets/81a7eec7-08ce-4647-b976-63905ab1b343)
+
+Issue the following command 
+     
+    sudo pam-auth-update 
+
+Scroll down and select "Create home directory on login".
+
+## 5. DNS Settings
+
+Change DNS settings to refer to AD.
+
+    sudo nano /etc/resolv.conf
+
+![image](https://github.com/user-attachments/assets/7d55c04b-ed5f-45d7-bd75-426cc207bd78)
+
+Add corp.project-x-dc.com to /etc/hosts:
+
+    sudo nano /etc/hosts
+
+![image](https://github.com/user-attachments/assets/82eb6192-24ac-4212-b95a-7f97682d79c1)
+
+Change Network settings from Bridged to NAT Network .
+
+## 6. Join Active Directory Domain
+
+    sudo net ads join -U Administrator
+
+Restart Winbind
+    
+    sudo systemctl restart winbind
+
+
+
+## 7. Verify Integration
+
+    net ads info 
+
+    wbinfo -u 
+
+
+## 8. Create AD Account (Windows Side)
+
+1. Navigate to Server Manager → Tools → Active Directory Users and Computers.
+2. Go to Users folder → Right-click and select New → User.
+3. Enter user information as needed:
+
+![image](https://github.com/user-attachments/assets/d96581a4-e6c1-4da4-9129-8ab5647c670a)
+
+
+
+## 8. Final Verification
+Clear the winbind cache by restarting the service, then see the changes reflected.
+
+    sudo systemctl restart winbind
+    wbinfo -u 
+
+Login as email-svr (CORP+email-svr)
+
+    sudo login 
+
+Issue an id command to view status
+
+    id 
+
+![image](https://github.com/user-attachments/assets/1adebffb-8c52-489b-92dc-e01b2fb8248f)
+
+
+
+
+
+# Postfix Email Server Configuration Guide
+
+## 1. Install Postfix
+
+sudo apt update
+sudo DEBIAN_PRIORITY=low apt install postfix
+
+
+
+**Installation Prompts Configuration:**
+- General type: `Internet Site`  
+- System mail name: `email-svr`  
+- Root/postmaster recipient: `email-svr `
+- Other destinations to accept mail for: 'Default settings'
+- Force synchronous updates on mail queue: 'No'
+- Mailbox size limit: `0`  
+- Local address extension: `+`  
+- Protocols: `All`
+
+When prompted to restart services, accept the defaults, choose “OK”
+
+## 2. Configure Postfix
+Set the location for the Ubuntu user’s mailbox.
+
+    sudo postconf -e 'home_mailbox=Maildir/'
+
+Set the location of the virtual_alias_maps table, which maps arbitrary email accounts to
+Linux system accounts.
+
+    sudo postconf -e 'virtual_alias_maps=hash:/etc/postfix/virtual'
+
+
+
+**Create Virtual Alias Map:**
+
+Next, create the virtual file, then we can begin mapping email accounts to user accounts to
+Linux system
+
+    sudo nano /etc/postfix/virtual
+
+![image](https://github.com/user-attachments/assets/21ad9815-dfa2-48f5-a217-7211cbb75485)
+
+
+
+Enter any email address we would like accept:
+
+    contact@corp.project-x-dc.com email-svr
+    admin@corp.project-x-dc.com email-svr
+    email-svr@corp.project-x-dc.com email-svr
+
+
+
+Apply changes:
+
+    sudo postmap /etc/postfix/virtual
+    sudo systemctl restart postfix
+
+Allow connections to the service Postfix with UFW:
+
+    sudo ufw allow Postfix
+    sudo ufw enable
+
+
+## 3. Configure Email Client (s-nail)
+
+echo 'export MAIL=~/Maildir' | sudo tee -a /etc/bash.bashrc | sudo tee -a /etc/profile.d/mail.sh
+
+Supply variable into the current session with:
+
+    source /etc/profile.d/mail.sh
+
+Install s-nail email client:
+
+    sudo apt install s-nail
+
+
+
+**Edit s-nail Config:**
+
+sudo nano /etc/s-nail.rc
+
+Add:
+
+set emptystart
+set folder=Maildir
+set record=+sent
+
+![image](https://github.com/user-attachments/assets/31ac076f-12fd-4293-8b89-212cb6d27cb1)
+
+
+## 4. Network Configuration
+**Set Hostname:**
+
+sudo nano /etc/hostname
+
+Delete all contents in the file, then add:
+
+    smtp.corp.project-x-dc.com
+
+
+
+**Static IP Configuration:**
+
+sudo nano /etc/netplan/01-netcfg.yaml
+
+
+   network:
+       ethernets:
+               enp0s3:
+                   dhcp4: false
+                   addresses: 
+                     - 10.0.0.8/24
+                   gateway4: 10.0.0.1
+                   nameservers:
+                   addresses: 
+                     - 10.0.0.5
+                     - 8.8.8.8
+     version: 2
+
+![image](https://github.com/user-attachments/assets/873fe28c-2030-4990-a646-a0bb9f08071c)
+
+
+
+
+    sudo netplan apply
+
+    reboot
+
+
+
+## 5. Final Postfix Configuration
+
+    sudo nano /etc/postfix/main.cf
+
+
+Add/Verify:
+
+smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
+myhostname = smtp.corp.project-x-dc.com
+mydomain = corp.project-x-dc.com
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+mydestination = $myhostname, localhost.$mydomain, localhost
+relayhost =
+mynetworks = 127.0.0.0/8 10.0.0.0/24 [::ffff:127.0.0.0]/104 [::1]/128
+mailbox_size_limit = 0
+recipient_delimiter = +
+inet_interfaces = all
+inet_protocols = all
+home_mailbox = Maildir/
+virtual_alias_maps = hash:/etc/postfix/virtual.
+
+![image](https://github.com/user-attachments/assets/43ebcf71-5682-4d8f-ba5b-a6862e63e575)
+
+## 6. DNS Configuration (Windows AD)
+1. Open **DNS Manager** on Domain Controller  
+2. Create new A record in `corp.project-x-dc.com` zone:  
+   - Name: `smtp`  
+   - IP: `10.0.0.8`
+
+![image](https://github.com/user-attachments/assets/269eb4fc-3edc-457d-b192-8d334c7ce811)
+
+## 7. Test Email Functionality
+**Initialize Maildir:**
+
+mkdir /home/email-svr/Maildir
+echo 'init' | s-nail -s 'init' -Snorecord email-svr
+
+![image](https://github.com/user-attachments/assets/c9d25e36-678d-453c-8df6-1485da93ba32)
+
+
+**Send Test Email:**
+
+    nano ~/test_message # Add "This is a test!"
+
+    cat ~/test_message | s-nail -s 'Test' -r janed@corp.project-x-dc.com email-svr@email-svr
+
+
+**Verify Delivery:**
+
+s-nail
+
+
+
+
 
