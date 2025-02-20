@@ -343,7 +343,6 @@ IPv4 Settings:
 
 ## [Connect to Active Directory via Samba Winbind](pplx://action/followup)
 
-### [Prerequisites](pplx://action/followup)
 
 sudo apt update
 
@@ -461,7 +460,7 @@ Clear the winbind cache by restarting the service, then see the changes reflecte
     wbinfo -u 
     sudo login 
 
-Going back to the Server Manager, we should see “LINUX-CLIENT” under the “Computers”
+Going back to the Server Manager, you should see “LINUX-CLIENT” under the “Computers”
 folder.
 
 ![image](https://github.com/user-attachments/assets/25063361-df95-43cb-a71f-c25c8afd0e32)
@@ -644,7 +643,7 @@ Linux system accounts.
 
 **Create Virtual Alias Map:**
 
-Next, create the virtual file, then we can begin mapping email accounts to user accounts to
+Next, create the virtual file, then begin mapping email accounts to user accounts to
 Linux system
 
     sudo nano /etc/postfix/virtual
@@ -653,7 +652,7 @@ Linux system
 
 
 
-Enter any email address we would like accept:
+Enter any email address you would like accept:
 
     contact@corp.project-x-dc.com email-svr
     admin@corp.project-x-dc.com email-svr
