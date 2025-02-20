@@ -850,7 +850,7 @@ Issue the following command to start the Wazuh installation wizard
 
 ## Deploy Wazuh Agents
 
-## Windows [project-x-win-client]
+### Windows [project-x-win-client]
 
 -Go to “Server Management” -> “Endpoint Summary”.
 
@@ -998,5 +998,15 @@ These logs allow Wazuh to detect potential security threats, unauthorized access
 
 
 ![image](https://github.com/user-attachments/assets/4d84a4c9-9691-4598-9977-6d0f1d906023)
+
+
+## Future Plans
+
+In the future, I aim to enhance this setup with the following features:
+
+- **Implement File Integrity Monitoring (FIM)**: To detect unauthorized changes to critical files.
+- **Set Up Behavioral Analysis**: To identify unusual patterns that may indicate potential security threats.
+- **Integrate Cloud Services**: To extend security monitoring to cloud workloads and containers.
+- **Create Custom Dashboards**: For visualizing security events and trends across the network.
 
 
