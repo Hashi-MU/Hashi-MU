@@ -14,13 +14,13 @@ This setup demonstrates a flexible and well-rounded network infrastructure that 
 
 ## Overview
 
-| VM Name | Operating System | Specs | Storage (minimum) | IP Address | Function |
-|---------|------------------|-------|-------------------|------------|----------|
-| [project-x-dc] | Windows Server 2025 | 2 CPU / 4096 MB | 50 GBs | 10.0.0.5 | Domain Controller (DNS, DHCP, SSO) |
-| [project-x-win-client] | Windows 11 Enterprise | 2 CPU / 4096 MB | 80 GBs | 10.0.0.100 or (dynamic) | Windows Workstation |
-| [project-x-linux-client] | Ubuntu 22.04 Desktop | 1 CPU / 2048 MB | 80 GBs | 10.0.0.101 or (dynamic) | Linux Desktop Workstation |
-| [project-x-sec-box] | Ubuntu 22.04 Desktop | 2 CPU / 4096 MB | 80 GBs | 10.0.0.10 | Dedicated Security Server |
-| [project-x-email-svr] | Ubuntu Server 22.04 | 1 CPU / 2048 MB | 25 GBs | 10.0.0.8 | SMTP Relay Server |
+| Operating System | Specs | Storage (minimum) | IP Address | Function |
+|------------------|-------|-------------------|------------|----------|
+| Windows Server 2025 | 2 CPU / 4096 MB | 50 GBs | 10.0.0.5 | Domain Controller (DNS, DHCP, SSO) |
+| Windows 11 Enterprise | 2 CPU / 4096 MB | 80 GBs | 10.0.0.100 or (dynamic) | Windows Workstation |
+| Ubuntu 22.04 Desktop | 1 CPU / 2048 MB | 80 GBs | 10.0.0.101 or (dynamic) | Linux Desktop Workstation |
+| Ubuntu 22.04 Desktop | 2 CPU / 4096 MB | 80 GBs | 10.0.0.10 | Dedicated Security Server |
+| Ubuntu Server 22.04 | 1 CPU / 2048 MB | 25 GBs | 10.0.0.8 | SMTP Relay Server |
 
 
 
