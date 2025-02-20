@@ -26,7 +26,7 @@ This setup demonstrates a flexible and well-rounded network infrastructure that 
 
 
 ## Network Topology
-![image](https://github.com/user-attachments/assets/063666f2-dcaf-4e7d-aec3-8396a018ac47)
+![image](https://github.com/user-attachments/assets/e1a2923c-24f7-4737-b654-73736be946a9)
 
 ## [Tools](pplx://action/followup)
 
