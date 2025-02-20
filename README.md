@@ -471,24 +471,6 @@ folder.
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Ubuntu Security Server Setup and Active Directory Integration
 
 ## 1. Install Ubuntu Server
@@ -527,15 +509,25 @@ Replace realm and workgroup with the following:
 
 [global]
 kerberos method = secrets and keytab
+
 realm = CORP.PROJECT-X-DC.COM
+
 workgroup = CORP
+
 security = ads
+
 template shell = /bin/bash
+
 winbind enum groups = Yes
+
 winbind enum users = Yes
+
 winbind separator = +
+
 idmap config * : rangesize = 1000000
+
 idmap config * : range = 1000000-19999999
+
 idmap config * : backend = autorid
 
 
@@ -724,16 +716,27 @@ sudo nano /etc/netplan/01-netcfg.yaml
 
 
    network:
+   
        ethernets:
+       
                enp0s3:
+               
                    dhcp4: false
+                   
                    addresses: 
+                   
                      - 10.0.0.8/24
+                     
                    gateway4: 10.0.0.1
+                   
                    nameservers:
+                   
                    addresses: 
+                   
                      - 10.0.0.5
+                     
                      - 8.8.8.8
+                     
      version: 2
 
 ![image](https://github.com/user-attachments/assets/873fe28c-2030-4990-a646-a0bb9f08071c)
@@ -755,18 +758,31 @@ sudo nano /etc/netplan/01-netcfg.yaml
 Add/Verify:
 
 smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
+
 myhostname = smtp.corp.project-x-dc.com
+
 mydomain = corp.project-x-dc.com
+
 alias_maps = hash:/etc/aliases
+
 alias_database = hash:/etc/aliases
+
 mydestination = $myhostname, localhost.$mydomain, localhost
+
 relayhost =
+
 mynetworks = 127.0.0.0/8 10.0.0.0/24 [::ffff:127.0.0.0]/104 [::1]/128
+
 mailbox_size_limit = 0
+
 recipient_delimiter = +
+
 inet_interfaces = all
+
 inet_protocols = all
+
 home_mailbox = Maildir/
+
 virtual_alias_maps = hash:/etc/postfix/virtual.
 
 ![image](https://github.com/user-attachments/assets/43ebcf71-5682-4d8f-ba5b-a6862e63e575)
@@ -797,9 +813,190 @@ echo 'init' | s-nail -s 'init' -Snorecord email-svr
 
 **Verify Delivery:**
 
-s-nail
+    s-nail
 
 
 
+
+
+# Wazuh Security Monitoring Setup Guide
+
+## 1. Install Wazuh Server on Security Box (secbox)
+Sign into sec-user@secbox:
+
+    sudo su sec-user
+
+Install cURL if it isn’t installed already:
+
+    sudo apt install curl
+
+Issue the following command to start the Wazuh installation wizard    
+    
+    curl -sO https://packages.wazuh.com/4.9/wazuh-install.sh && sudo bash ./wazuh-install.sh -a -i
+
+
+
+
+
+
+
+## 2. Access Wazuh Dashboard
+1. Navigate to `https://localhost` in browser  
+2. Accept security risk 
+3. Login with generated credentials  
+
+
+---
+
+## Deploy Wazuh Agents
+
+## Windows [project-x-win-client]
+
+-Go to “Server Management” -> “Endpoint Summary”.
+
+-Choose “Deploy new agent”.
+
+-Select Windows MSI.
+
+-Server Address: 10.0.0.10.
+
+-Assign an agent name: project-x-win-client
+
+-Groups: default
+
+-Copy and run the command
+
+-Open new Powershell Session -> Right-click “Run as Administrator”
+
+-Right-click to paste the command, then run the command:
+
+    Invoke-WebRequest -Uri https://packages.wazuh.com/4.x/windows/wazuh-agent-4.9.2-1.msi - OutFile $env:tmp\wazuh-agent; msiexec.exe /i $env:tmp\wazuh-agent /q WAZUH_MANAGER='10.0.0.10' WAZUH_AGENT_GROUP='default' WAZUH_AGENT_NAME='project-x-win-client'
+
+Start the Wazuh Agent:
+    
+    NET START WAZUH
+
+![image](https://github.com/user-attachments/assets/a7ded300-5e59-4649-ad91-4aaf3e3c3b9e)
+
+
+### Domain Controller ([project-x-dc])
+
+Repeat the above steps. For the WAZUH_AGENT_NAME, change to project-x-dc.
+
+Invoke-WebRequest -Uri https://packages.wazuh.com/4.x/windows/wazuh-agent-4.9.2-1.msi -OutFile $env:tmp\wazuh-agent
+msiexec.exe /i $env:tmp\wazuh-agent /q WAZUH_MANAGER='10.0.0.10' WAZUH_AGENT_GROUP='default' WAZUH_AGENT_NAME='project-x-dc'
+
+
+
+**Common Post-Install Steps:**  
+
+
+
+## Linux Client ([project-x-linux-client])
+
+### Agent Installation
+1. **From Wazuh Dashboard**:
+   - Navigate to `Server Management` → `Endpoint Summary`
+   - Select `Deploy new agent`
+   - Configuration:
+     - OS Type: `DEB amd64`  
+     - Server Address: `10.0.0.10`  
+     - Agent Name: `project-x-linux-client`  
+     - Groups: `default`
+
+2. **Terminal Commands**:
+
+     `sudo wget https://packages.wazuh.com/4.x/apt/pool/main/w/wazuh-agent/wazuh-agent_4.9.2-1_amd64.deb && sudo WAZUH_MANAGER='10.0.0.10' WAZUH_AGENT_GROUP='default' WAZUH_AGENT_NAME='project-x-linux-client' dpkg -i ./wazuh-agent_4.9.2-1_amd64.deb`
+
+
+3. **Enable Service**:
+
+   `sudo systemctl daemon-reload
+    sudo systemctl enable wazuh-agent
+    sudo systemctl start wazuh-agent`
+
+
+
+## Create Agent Groups
+
+### Linux Group
+1. Navigate to `Server Management` → `Endpoint Groups`
+2. Select `Add new group`
+3. Name: **Linux**
+
+### Windows Group
+1. Navigate to `Server Management` → `Endpoint Groups`
+2. Select `Add new group`
+3. Name: **Windows**
+
+### Assign Agents to Groups
+1. For `project-x-dc` and `project-x-win-client`:
+- Edit agent → Add to **Windows** group
+2. For `project-x-linux-client`:
+- Edit agent → Add to **Linux** group
+
+
+
+## Custom Log Collection Configuration
+
+### Windows Group Configuration
+
+These configurations enables Wazuh to collect and monitor Windows event logs from Security which captures security-related events, such login attempts and user account changes. They also collect logs related to applications, including crashes and significant errors.
+
+ <agent_config>
+  
+   <!-- Shared agent configuration here -->
+   
+   <localfile>
+    
+     <location>Security</location>
+     
+     <log_format>eventchannel</log_format> #specifies that Wazuh will utilize the Windows Event Channel format for detailed monitoring and analysis. 
+     
+   </localfile>
+   
+   <localfile>
+    
+     <location>Application</location>
+     
+     <log_format>eventchannel</log_format>
+     
+   </localfile>
+
+![image](https://github.com/user-attachments/assets/f4a4025b-3305-46b0-860f-0efacc6e0b6a)
+
+  Linux Group Configuration
+
+These logs allow Wazuh to detect potential security threats, unauthorized access attempts, and system changes on Linux systems
+  
+<agent_config>
+  <localfile>
+   
+    <log_format>syslog</log_format>
+    
+    <location>/var/log/auth.log</location>
+    
+  </localfile>
+  
+  <localfile>
+   
+    <log_format>syslog</log_format>
+    
+    <location>/var/log/secure</location>
+    
+  </localfile>
+  
+  <localfile>
+   
+    <log_format>audit</log_format>
+    
+    <location>/var/log/audit/audit.log</location>
+    
+  </localfile>
+  
+</agent_config>
+
+
+![image](https://github.com/user-attachments/assets/4d84a4c9-9691-4598-9977-6d0f1d906023)
 
 
